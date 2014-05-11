@@ -255,7 +255,7 @@
             }
             
             function handleResp2(beacons) {
-                for(beaconId in beacons) {
+                Object.keys(beacons).map(function(beaconId) {
                     var beacon = beacons[beaconId];
                     var beaconMarker = $("#"+beaconId);
                     if(beaconMarker.length === 0 ) {
@@ -264,11 +264,20 @@
                             position: latlng,
                             icon: "beacon.png#"+beaconId,
                             optimized: false,
+                            title: beaconId,
                         });
                         marker.setMap(map2);
                         $("#templateCounter").after($("#templateCounter").clone().attr("id",beaconId));
                         $("#"+beaconId).find('#myCounter').attr("id","counter"+beaconId);
                         counters[beaconId] = new flipCounter("counter"+beaconId, {value: beacon.people, inc: 1, pace: 1000, auto: false});
+                        
+                        var infowindow = new google.maps.InfoWindow({
+                            content: "<div style='z-index:10002;position:relative;'><img src='"+beaconId+".jpg' style='z-index:10002;position:relative;'/></div>",
+                        });
+                        
+                        google.maps.event.addListener(marker, 'click', function() {
+                            infowindow.open(map2,marker);
+                        });
                         
                         rotate2(beaconId);
                         
@@ -284,7 +293,7 @@
                         marginLeft = -45;
                     }
                     $("#"+beaconId).css('marginLeft',marginLeft + 'px');
-                }
+                });
             }
             
             window.handleResp = handleResp;
