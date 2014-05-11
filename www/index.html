@@ -1,0 +1,310 @@
+<!DOCTYPE html><!--HTML5 doctype-->
+<html>
+<head>
+	<title>SOS</title>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0" />
+	<style type="text/css">
+		/* Prevent copy paste for all elements except text fields */
+		*  { -webkit-user-select:none; -webkit-tap-highlight-color:rgba(255, 255, 255, 0); }
+		input, textarea  { -webkit-user-select:text; }
+		body { background-color:white; color:black }
+	</style>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="main.css" rel="stylesheet">
+    <!--[if lt IE 9]>
+          <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+	<script src='intelxdk.js'></script>
+	<script type="text/javascript">
+		/* Intel native bridge is available */
+		var onDeviceReady=function(){
+		//hide splash screen
+		intel.xdk.device.hideSplashScreen();
+		};
+		document.addEventListener("intel.xdk.device.ready",onDeviceReady,false);
+	</script>
+</head>
+<body>  
+        <div class="navbar navbar-custom navbar-fixed-top">
+ <div class="navbar-header"><a class="navbar-brand" href="#">Code for India</a>
+      <a class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="active"><a id="droneView" href="#">Drone View</a></li>
+        <li><a id="beaconView" href="#">Beacon View</a></li>
+        <li>&nbsp;</li>
+      </ul>
+      <form class="navbar-form">
+        <div class="form-group" style="display:inline;">
+          <div class="input-group">
+            <div class="input-group-btn">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-chevron-down"></span></button>
+              <ul class="dropdown-menu">
+                <li><a id="roadmap" href="#">Roadmap</a></li>
+                <li><a id="satellite" href="#">Satellite</a></li>
+                <li><a id="hybrid" href="#">Hybrid</a></li>
+                <li><a id="terrain" href="#">Terrain</a></li>
+              </ul>
+            </div>
+            <input type="text" class="form-control" placeholder="What are searching for?">
+            <span class="input-group-addon"><span class="glyphicon glyphicon-search"></span> </span>
+          </div>
+        </div>
+      </form>
+    </div>
+</div>
+
+<div id="map-canvas"></div>
+<div id="map-canvas2"></div>
+<div class="radar" id="template">
+    <div class="rad"></div>
+    <div id="person2" class="obj" data-x="140" data-y="185"></div>
+    <div id="person1" class="obj" data-x="120" data-y="65"></div>
+    <div id="person3" class="obj" data-x="220" data-y="35"></div>
+    <div id="person4" class="obj" data-x="120" data-y="235"></div>
+</div>
+
+<div class="counter-wrapper" id="templateCounter">
+    <ul class="flip-counter small" id="myCounter"></ul>
+</div>
+
+<div class="container-fluid" id="main">
+  <div class="row">
+  	<div class="col-xs-8" id="left">
+    
+    </div>
+    <div class="col-xs-4">
+    
+    </div>
+  </div>
+</div>
+
+
+        
+        <script type='text/javascript' src="//ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+
+
+        <script type='text/javascript' src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+
+<script type='text/javascript' src="http://maps.googleapis.com/maps/api/js?sensor=false&extension=.js&output=embed"></script>
+
+<script type="text/javascript" src="flipCounter.js"></script>
+
+        
+        <!-- JavaScript jQuery code from Bootply.com editor  -->
+        
+        <script type='text/javascript'>
+        $(document).ready(function() {
+            var map, map2;
+            var firstTime = true;
+            var isDroneMap = true;
+        $("#droneView").click(function(){
+            $("#map-canvas2").css('z-index',999);
+            $(".counter-wrapper").css('visibility','hidden');
+            isDroneMap = true;
+        });
+            
+        $("#beaconView").click(function(){
+            $("#map-canvas2").css('z-index',1001);
+            $(".counter-wrapper").css('visibility','visible');
+            if(firstTime) {getData2(); firstTime = false; }
+            isDroneMap = false;
+        });
+        
+        $("#roadmap").click(function(){
+            var mapToChange = isDroneMap ? map : map2;
+            console.log(isDroneMap);
+            mapToChange.setMapTypeId(google.maps.MapTypeId.ROADMAP);
+        });
+        
+        $("#hybrid").click(function(){
+            var mapToChange = isDroneMap ? map : map2;
+            console.log(isDroneMap);
+            mapToChange.setMapTypeId(google.maps.MapTypeId.HYBRID);
+        });
+            
+        $("#terrain").click(function(){
+            var mapToChange = isDroneMap ? map : map2;
+            console.log(isDroneMap);
+            mapToChange.setMapTypeId(google.maps.MapTypeId.TERRAIN);
+        });
+            
+        $("#satellite").click(function(){
+            var mapToChange = isDroneMap ? map : map2;
+            console.log(isDroneMap);
+            mapToChange.setMapTypeId(google.maps.MapTypeId.SATELLITE);
+        });
+        
+            var counters = {};
+            var markers = {};
+            
+            /* google maps -----------------------------------------------------*/
+            google.maps.event.addDomListener(window, 'load', initialize);
+
+            function initialize() {              
+              var latlng = new google.maps.LatLng(12.993605,77.66041);
+              var mapOptions = {
+                center: latlng,
+                zoom: 18,
+                zoomControl: false,
+                scrollwheel: false,
+                disableDoubleClickZoom: true,
+              };
+                
+              map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+              getData();
+              
+              initialize2();
+                
+            };
+            /* end google maps -----------------------------------------------------*/
+            
+            function initialize2() {
+              var latlng = new google.maps.LatLng(30.5927289,78.962565);
+              var mapOptions = {
+                center: latlng,
+                scrollWheel: true,
+                zoom: 9,
+                zoomControl: true,
+                disableDoubleClickZoom: false,
+              };
+                
+              map2 = new google.maps.Map(document.getElementById("map-canvas2"), mapOptions);    
+                window.map2 = map2;
+            }
+            
+    function createObjects($obj) {
+        var rad = 110.5;
+        $obj.each(function(){
+            var data = $(this).data(),
+            pos = {X:data.x, Y:data.y},
+            getAtan = Math.atan2(pos.X-rad, pos.Y-rad),
+            getDeg = ~~(-getAtan/(Math.PI/180) + 180);
+            $(this).css({left:pos.X, top:pos.Y}).attr('data-atDeg', getDeg);
+        });
+        
+    }
+            
+    function rotate(droneId, deg) {  
+      var $rad = $($("#"+droneId).find('.rad'));
+      $rad.css({transform: 'rotate('+ deg +'deg)'});
+      //$('[data-atDeg='+deg+']').stop().fadeTo(0,1).fadeTo(1700,0.2);
+      var offset = $("img[src='marker.png#"+droneId+"']").offset();
+      if(offset) {
+        $("#"+droneId).css({top: offset.top+"px", left: offset.left+"px",});
+      }
+        // LOOP
+        setTimeout(function() {
+            rotate(droneId, ++deg%360);
+        }, 25);
+    };
+            
+    function rotate2(beaconId) {
+        var offset = $("img[src='beacon.png#"+beaconId+"']").offset();
+      if(offset) {
+        $("#"+beaconId).css({top: offset.top+"px", left: offset.left+"px",});
+      }
+        // LOOP
+        setTimeout(function() {
+            rotate2(beaconId);
+        }, 25);
+        
+    }
+            function handleResp(data) {
+                for(droneId in data) {
+                    var drone = data[droneId];
+                    var droneRadar = $("#"+droneId);
+                    if(droneRadar.length === 0 ) {
+                        var latlng = new google.maps.LatLng(drone.latitude, drone.longitude);
+                        var marker = new google.maps.Marker({
+                            position: latlng,
+                            icon: "marker.png#"+droneId,
+                            optimized: false,
+                        });
+                        marker.setMap(map);
+                        markers[droneId] = marker;
+                        $("#template").after($("#template").clone().attr("id",droneId));
+                        rotate(droneId,0);
+                    } else {
+                        markers[droneId].setPosition(new google.maps.LatLng(drone.latitude, drone.longitude));
+                    }
+                    var droneRadar = $("#"+droneId);
+                    var visibility = drone.isAlive ? "visible" : "hidden";
+                    droneRadar.css("visibility", visibility);
+                    var people = drone.objects;
+                    var i=1;
+                    for(personId in people) {
+                        if(people[personId] && drone.isAlive) {
+                            $(droneRadar.find('#person'+(i))).css({visibility: 'visible', opacity: '1'});
+                        } else {
+                            $(droneRadar.find('#person'+(i))).css({visibility: 'visible', opacity: '0.2'});
+                        }
+                        i++;
+                    }
+                    createObjects($(droneRadar.find('.obj')));
+                }
+            }
+            
+            function handleResp2(beacons) {
+                for(beaconId in beacons) {
+                    var beacon = beacons[beaconId];
+                    var beaconMarker = $("#"+beaconId);
+                    if(beaconMarker.length === 0 ) {
+                        var latlng = new google.maps.LatLng(beacon.latitude, beacon.longitude);
+                        var marker = new google.maps.Marker({
+                            position: latlng,
+                            icon: "beacon.png#"+beaconId,
+                            optimized: false,
+                        });
+                        marker.setMap(map2);
+                        $("#templateCounter").after($("#templateCounter").clone().attr("id",beaconId));
+                        $("#"+beaconId).find('#myCounter').attr("id","counter"+beaconId);
+                        counters[beaconId] = new flipCounter("counter"+beaconId, {value: beacon.people, inc: 1, pace: 1000, auto: false});
+                        
+                        rotate2(beaconId);
+                        
+                    } else {
+                        counters[beaconId].setValue(beacon.people);
+                    }
+                }
+            }
+            
+            window.handleResp = handleResp;
+            
+            function getData() {
+                $.ajax("http://codeforindia.herokuapp.com/",{dataType:"jsonp", crossDomain: true});
+                window.poll = setTimeout(getData, 500);
+            }
+            var i=0;
+            function getData2() {
+                var beacons = [{
+                    "kedarnath": {
+                        latitude: 30.5927289,
+                        longitude: 78.962565,
+                        people: 157,
+                    },
+                },
+                {
+                    "kedarnath": {
+                        latitude: 30.5927289,
+                        longitude: 78.962565,
+                        people: 158,
+                    },
+                }];
+                handleResp2(beacons[i]);
+                if(beacons[i+1]) i++;
+                setTimeout(getData2, 500);
+            }
+        });
+        </script>
+        
+    </body>
+</html>
+
