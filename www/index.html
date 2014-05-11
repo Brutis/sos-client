@@ -108,12 +108,14 @@
         $("#droneView").click(function(){
             $("#map-canvas2").css('z-index',999);
             $(".counter-wrapper").css('visibility','hidden');
+            $(".radar").css('visibility','visible');
             isDroneMap = true;
         });
             
         $("#beaconView").click(function(){
             $("#map-canvas2").css('z-index',1001);
             $(".counter-wrapper").css('visibility','visible');
+            $(".radar").css('visibility','hidden');
             if(firstTime) {getData2(); firstTime = false; }
             isDroneMap = false;
         });
@@ -236,8 +238,8 @@
                         markers[droneId].setPosition(new google.maps.LatLng(drone.latitude, drone.longitude));
                     }
                     var droneRadar = $("#"+droneId);
-                    var visibility = drone.isAlive ? "visible" : "hidden";
-                    droneRadar.css("visibility", visibility);
+                    var visibility = drone.isAlive ? "block" : "none";
+                    droneRadar.css("display", visibility);
                     var people = drone.objects;
                     var i=1;
                     for(personId in people) {
@@ -273,6 +275,15 @@
                     } else {
                         counters[beaconId].setValue(beacon.people);
                     }
+                    var marginLeft;
+                    if(beacon.people >= 100) {
+                        marginLeft = -95;
+                    } else if(beacon.people >= 10) {
+                        marginLeft = -70;
+                    } else {
+                        marginLeft = -45;
+                    }
+                    $("#"+beaconId).css('marginLeft',marginLeft + 'px');
                 }
             }
             
@@ -285,22 +296,161 @@
             var i=0;
             function getData2() {
                 var beacons = [{
-                    "kedarnath": {
-                        latitude: 30.5927289,
-                        longitude: 78.962565,
-                        people: 157,
+                    "Kedarnath": {
+                        latitude: 30.767799,
+                        longitude: 79.068604,
+                        people: 256,
+                    },
+                    "Yamnotri": {
+                        latitude: 31.016456,
+                        longitude: 78.460236,
+                        people: 172,
+                    },
+                    "Gangotri": {
+                        latitude: 31.041168,
+                        longitude: 78.917542,
+                        people: 78,
+                    },
+                    "Uttarkashi": {
+                        latitude: 30.793756,
+                        longitude: 78.445129,
+                        people: 54,
+                    },
+                    "Badrinath": {
+                        latitude: 30.789037,
+                        longitude: 79.49707,
+                        people: 82,
+                    },
+                    "Rishikesh": {
+                        latitude: 30.126124,
+                        longitude: 78.272095,
+                        people: 320,
+                    },
+                    "Haridwar": {
+                        latitude: 29.988245,
+                        longitude: 78.159485,
+                        people: 356,
                     },
                 },
                 {
-                    "kedarnath": {
-                        latitude: 30.5927289,
-                        longitude: 78.962565,
-                        people: 158,
+                    "Kedarnath": {
+                        latitude: 30.767799,
+                        longitude: 79.068604,
+                        people: 258,
                     },
-                }];
+                    "Yamnotri": {
+                        latitude: 31.016456,
+                        longitude: 78.460236,
+                        people: 170,
+                    },
+                    "Gangotri": {
+                        latitude: 31.041168,
+                        longitude: 78.917542,
+                        people: 82,
+                    },
+                    "Uttarkashi": {
+                        latitude: 30.793756,
+                        longitude: 78.445129,
+                        people: 51,
+                    },
+                    "Badrinath": {
+                        latitude: 30.789037,
+                        longitude: 79.49707,
+                        people: 91,
+                    },
+                    "Rishikesh": {
+                        latitude: 30.126124,
+                        longitude: 78.272095,
+                        people: 331,
+                    },
+                    "Haridwar": {
+                        latitude: 29.988245,
+                        longitude: 78.159485,
+                        people: 368,
+                    },
+                    
+                },
+                {
+                    "Kedarnath": {
+                        latitude: 30.767799,
+                        longitude: 79.068604,
+                        people: 260,
+                    },
+                    "Yamnotri": {
+                        latitude: 31.016456,
+                        longitude: 78.460236,
+                        people: 174,
+                    },
+                    "Gangotri": {
+                        latitude: 31.041168,
+                        longitude: 78.917542,
+                        people: 85,
+                    },
+                    "Uttarkashi": {
+                        latitude: 30.793756,
+                        longitude: 78.445129,
+                        people: 52,
+                    },
+                    "Badrinath": {
+                        latitude: 30.789037,
+                        longitude: 79.49707,
+                        people: 93,
+                    },
+                    "Rishikesh": {
+                        latitude: 30.126124,
+                        longitude: 78.272095,
+                        people: 330,
+                    },
+                    "Haridwar": {
+                        latitude: 29.988245,
+                        longitude: 78.159485,
+                        people: 370,
+                    },
+                    
+                },
+                {
+                    "Kedarnath": {
+                        latitude: 30.767799,
+                        longitude: 79.068604,
+                        people: 257,
+                    },
+                    "Yamnotri": {
+                        latitude: 31.016456,
+                        longitude: 78.460236,
+                        people: 173,
+                    },
+                    "Gangotri": {
+                        latitude: 31.041168,
+                        longitude: 78.917542,
+                        people: 88,
+                    },
+                    "Uttarkashi": {
+                        latitude: 30.793756,
+                        longitude: 78.445129,
+                        people: 50,
+                    },
+                    "Badrinath": {
+                        latitude: 30.789037,
+                        longitude: 79.49707,
+                        people: 91,
+                    },
+                    "Rishikesh": {
+                        latitude: 30.126124,
+                        longitude: 78.272095,
+                        people: 335,
+                    },
+                    "Haridwar": {
+                        latitude: 29.988245,
+                        longitude: 78.159485,
+                        people: 375,
+                    },
+                    
+                },
+                ];
                 handleResp2(beacons[i]);
                 if(beacons[i+1]) i++;
-                setTimeout(getData2, 500);
+                else i = 0;
+                setTimeout(getData2, 1500);
             }
         });
         </script>
